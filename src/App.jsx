@@ -98,7 +98,7 @@ function App() {
         </section>
 
         <section className={sectionClass} id="about">
-          <h2 className="my-5 bg-[rgba(255,51,153,0.05)] p-2.5 text-center text-[40px] text-[#333] max-[450px]:text-[30px]"><span className="text-[#e97db1]">About</span> Us</h2>
+          <h2 className="my-5 bg-[rgba(255,51,153,0.05)] p-5 text-center text-[40px] text-[#333] max-[450px]:text-[30px]"><span className="text-[#e97db1]">About</span> Us</h2>
           <div className="flex flex-wrap items-center gap-5 py-5 pb-[30px]">
             <div className="relative min-w-0 flex-[1_1_400px]">
               <video className="block max-h-[550px] w-full rounded-[5px] border-[15px] border-solid border-white object-cover shadow-[0_5px_10px_rgba(0,0,0,0.1)]" src={asset('ScreenRecording')} loop autoPlay muted playsInline aria-label="A look at Lily Lane handmade creations" />
@@ -114,15 +114,15 @@ function App() {
         </section>
 
         <section className={`${sectionClass} flex flex-wrap gap-[15px] bg-[#eee] py-[50px]`} aria-label="Shop benefits">
-          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5">
+          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5 rounded-xl">
             <img className="mr-5 h-[50px] w-[50px] shrink-0 object-contain" src={asset('free.jpeg')} alt="" loading="lazy" />
             <div><h3 className="pb-[5px] text-[20px] text-[#333]">Free Delivery</h3><span className="text-[17px] text-[#555]">Inside Kathmandu Valley and Rampur, Palpa</span></div>
           </div>
-          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5">
+          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5 rounded-xl">
             <img className="mr-5 h-[50px] w-[50px] shrink-0 object-contain" src={asset('Essentialgiftshub')} alt="" loading="lazy" />
             <div><h3 className="pb-[5px] text-[20px] text-[#333]">Get a special mini gift with your first purchase</h3><span className="text-[17px] text-[#555]">On all orders</span></div>
           </div>
-          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5">
+          <div className="flex min-w-0 flex-[1_1_250px] items-center border border-solid border-black/10 bg-white p-5 rounded-xl">
             <img className="mr-5 h-[50px] w-[50px] shrink-0 object-contain" src={asset('_.jpeg')} alt="" loading="lazy" />
             <div><h3 className="pb-[5px] text-[20px] text-[#333]">Buy two, get an extra surprise</h3><span className="text-[17px] text-[#555]">A little something extra for you</span></div>
           </div>
