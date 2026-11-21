@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router';
+import emailjs from '@emailjs/browser';
 
 const assets = import.meta.glob('../images/*.{jpeg,jpg,png,mov}', {
   eager: true,
@@ -23,7 +24,7 @@ const products = [
 const sectionClass = 'px-[9%] py-5 max-[991px]:px-5';
 const buttonClass = 'mt-2.5 inline-block cursor-pointer rounded-full bg-[#333] px-[35px] py-[9px] text-[17px] text-white transition-colors hover:bg-[#e97db1]';
 
-function Header({ cartCount }) {
+function Header({ cartCount, favoriteCount }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
 
@@ -50,7 +51,10 @@ function Header({ cartCount }) {
         <Link className="px-[15px] text-[20px] text-[#666] hover:text-[#e97db1] max-[768px]:m-[15px] max-[768px]:block max-[768px]:border max-[768px]:border-solid max-[768px]:border-black/10 max-[768px]:bg-white max-[768px]:p-[15px]" to="/#products" onClick={closeMenu}>Products</Link>
       </nav>
       <div className="ml-4 flex shrink-0 items-center gap-[15px] text-[25px] text-[#333] max-[768px]:gap-2.5 max-[768px]:text-[22px] max-[450px]:ml-2 max-[450px]:gap-2 max-[450px]:text-[20px]" aria-label="Shop links">
-        <Link to="/#products" className="hover:text-[#e97db1]" aria-label="Favorites"><i className="fas fa-heart" aria-hidden="true" /></Link>
+        <Link to="/favorites" className="relative hover:text-[#e97db1]" aria-label={`Favorites, ${favoriteCount} items`}>
+          <i className="fas fa-heart" aria-hidden="true" />
+          {favoriteCount > 0 && <span className="absolute -right-2.5 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e97db1] px-1 text-[12px] font-bold leading-none text-white">{favoriteCount}</span>}
+        </Link>
         <Link to="/cart" className="relative hover:text-[#e97db1]" aria-label={`Shopping cart, ${cartCount} items`}>
           <i className="fas fa-shopping-cart" aria-hidden="true" />
           {cartCount > 0 && <span className="absolute -right-2.5 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e97db1] px-1 text-[12px] font-bold leading-none text-white">{cartCount}</span>}
@@ -61,13 +65,13 @@ function Header({ cartCount }) {
   );
 }
 
-function ProductCard({ product, onAddToCart }) {
+function ProductCard({ product, onAddToCart, onAddToFavorites }) {
   return (
     <article className="group relative min-w-0 flex-[1_1_300px] overflow-hidden rounded-[5px] border border-solid border-black/10 shadow-[0_5px_15px_rgba(0,0,0,0.1)]">
       <div className="relative overflow-hidden pt-5 text-center">
         <img className="h-[250px] w-full object-contain transition-transform duration-200 group-hover:scale-[1.05]" src={product.image} alt={product.name} loading="lazy" />
         <div className="absolute inset-x-0 bottom-0 flex transition-[bottom] duration-200 min-[769px]:bottom-[-70px] min-[769px]:group-hover:bottom-0 min-[769px]:group-focus-within:bottom-0">
-          <a href="#" className="flex h-[50px] w-1/4 items-center justify-center bg-[#e97db1] text-[20px] text-white hover:bg-[#333]" aria-label={`Favorite ${product.name}`}><i className="fas fa-heart" aria-hidden="true" /></a>
+          <button type="button" onClick={() => onAddToFavorites(product)} className="flex h-[50px] w-1/4 items-center justify-center bg-[#e97db1] text-[20px] text-white hover:bg-[#333]" aria-label={`Favorite ${product.name}`}><i className="fas fa-heart" aria-hidden="true" /></button>
           <button type="button" onClick={() => onAddToCart(product)} className="flex h-[50px] w-1/2 items-center justify-center border-x border-solid border-white/45 bg-[#e97db1] text-[16px] text-white hover:bg-[#333]">Add to cart</button>
           <a href="#" className="flex h-[50px] w-1/4 items-center justify-center bg-[#e97db1] text-[20px] text-white hover:bg-[#333]" aria-label={`Share ${product.name}`}><i className="fas fa-share" aria-hidden="true" /></a>
         </div>
@@ -82,7 +86,7 @@ function ProductCard({ product, onAddToCart }) {
   );
 }
 
-function ShopPage({ onAddToCart }) {
+function ShopPage({ onAddToCart, onAddToFavorites, favorites }) {
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -94,6 +98,14 @@ function ShopPage({ onAddToCart }) {
   const handleAddToCart = (product) => {
     onAddToCart(product);
     setToast(`${product.name} added to your cart.`);
+  };
+
+  const handleAddToFavorites = (product) => {
+    const isAlreadySaved = favorites.some((favorite) => favorite.id === product.id);
+    if (!isAlreadySaved) onAddToFavorites(product);
+    setToast(isAlreadySaved
+      ? `${product.name} is already in your favorites.`
+      : `${product.name} added to your favorites.`);
   };
 
   return (
@@ -146,7 +158,7 @@ function ShopPage({ onAddToCart }) {
         <section className={sectionClass} id="products">
           <h2 className="my-5 bg-[rgba(255,51,153,0.05)] p-2.5 text-center text-[40px] text-[#333] max-[450px]:text-[30px]">Latest <span className="text-[#e97db1]">Products</span></h2>
           <div className="flex flex-wrap gap-[15px]">
-            {products.map((product) => <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />)}
+            {products.map((product) => <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} onAddToFavorites={handleAddToFavorites} />)}
           </div>
         </section>
       </main>
@@ -184,12 +196,89 @@ function ShopPage({ onAddToCart }) {
   );
 }
 
-function CartPage({ cart, onRemove, onSetQuantity }) {
+function CartPage({ cart, onRemove, onSetQuantity, onClearCart }) {
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [orderMessage, setOrderMessage] = useState(null);
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  useEffect(() => {
+    if (!checkoutOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !isSending) setCheckoutOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [checkoutOpen, isSending]);
+
+  const handleCheckout = async (event) => {
+    event.preventDefault();
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      setOrderMessage({
+        type: 'error',
+        text: 'Email checkout is not configured yet. Add your EmailJS IDs to .env.local and restart the app.',
+      });
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const customerName = formData.get('customer_name').trim();
+    const customerEmail = formData.get('customer_email').trim();
+    const customerPhone = formData.get('customer_phone').trim();
+    const deliveryAddress = formData.get('delivery_address').trim();
+    const notes = formData.get('order_notes').trim();
+    const orderId = `LL-${Date.now()}`;
+    const itemsText = cart.map(({ product, quantity }) =>
+      `${product.name} × ${quantity} — Rs. ${(product.price * quantity).toLocaleString('en-IN')}`,
+    ).join('\n');
+
+    setIsSending(true);
+    setOrderMessage(null);
+
+    try {
+      await emailjs.send(serviceId, templateId, {
+        to_email: 'crochetcloset@gmail.com',
+        order_id: orderId,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        delivery_address: deliveryAddress,
+        order_notes: notes || 'None',
+        order_items: itemsText,
+        order_total: `Rs. ${total.toLocaleString('en-IN')}`,
+        reply_to: customerEmail,
+      }, { publicKey });
+
+      onClearCart();
+      setCheckoutOpen(false);
+      setOrderMessage({ type: 'success', text: `Order ${orderId} was placed. We’ll contact you to confirm delivery.` });
+    } catch {
+      setOrderMessage({
+        type: 'error',
+        text: 'We could not send your order email. Please check your connection and try again.',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <main className="min-h-[70vh] px-[9%] pb-10 pt-[120px] max-[991px]:px-5">
       <h1 className="mb-6 text-[36px] text-[#333]">Your Shopping Cart</h1>
+      {orderMessage && (
+        <div className={`mb-5 rounded-lg border p-4 text-[15px] ${orderMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`} role={orderMessage.type === 'error' ? 'alert' : 'status'}>
+          {orderMessage.text}
+        </div>
+      )}
       {cart.length === 0 ? (
         <div className="rounded-lg border border-solid border-black/10 bg-[#fff9fc] p-8 text-center">
           <p className="text-[18px] text-[#666]">Your cart is empty.</p>
@@ -220,9 +309,81 @@ function CartPage({ cart, onRemove, onSetQuantity }) {
             <div className="mt-5 flex justify-between border-t border-solid border-black/10 pt-4 text-[18px]">
               <span>Total</span><strong>Rs. {total.toLocaleString('en-IN')}</strong>
             </div>
-            <p className="mt-3 text-[13px] text-[#777]">Delivery details can be confirmed when you contact us.</p>
-            <a href="mailto:crochetcloset@gmail.com" className={`${buttonClass} w-full text-center`}>Contact to order</a>
+            <button type="button" onClick={() => { setCheckoutOpen(true); setOrderMessage(null); }} className={`${buttonClass} w-full text-center`}>
+              Checkout
+            </button>
           </aside>
+        </div>
+      )}
+      {checkoutOpen && cart.length > 0 && (
+        <div
+          className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isSending) setCheckoutOpen(false);
+          }}
+        >
+          <form
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-solid border-black/10 bg-white p-5 shadow-2xl sm:p-7"
+            onSubmit={handleCheckout}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="checkout-title"
+          >
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 id="checkout-title" className="text-[24px] font-semibold text-[#333]">Delivery Information</h2>
+              <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[24px] text-[#666] hover:bg-[#fff0f7] hover:text-[#e97db1]" type="button" aria-label="Close checkout" disabled={isSending} onClick={() => setCheckoutOpen(false)}>×</button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1.5 text-[14px] text-[#555]">Full name
+                <input className="rounded border border-solid border-black/20 px-3 py-2.5 text-[16px] text-[#333]" type="text" name="customer_name" autoComplete="name" required maxLength={100} />
+              </label>
+              <label className="grid gap-1.5 text-[14px] text-[#555]">Email address
+                <input className="rounded border border-solid border-black/20 px-3 py-2.5 text-[16px] text-[#333]" type="email" name="customer_email" autoComplete="email" required maxLength={254} />
+              </label>
+              <label className="grid gap-1.5 text-[14px] text-[#555]">Phone number
+                <input className="rounded border border-solid border-black/20 px-3 py-2.5 text-[16px] text-[#333]" type="tel" name="customer_phone" autoComplete="tel" required maxLength={30} />
+              </label>
+              <label className="grid gap-1.5 text-[14px] text-[#555] sm:col-span-2">Delivery address
+                <textarea className="min-h-24 rounded border border-solid border-black/20 px-3 py-2.5 text-[16px] text-[#333]" name="delivery_address" autoComplete="street-address" required maxLength={500} />
+              </label>
+              <label className="grid gap-1.5 text-[14px] text-[#555] sm:col-span-2">Order notes <span className="text-[#888]">(optional)</span>
+                <textarea className="min-h-20 rounded border border-solid border-black/20 px-3 py-2.5 text-[16px] text-[#333]" name="order_notes" maxLength={500} />
+              </label>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <p className="text-[16px]">Order total: <strong className="text-[#e97db1]">Rs. {total.toLocaleString('en-IN')}</strong></p>
+              <button className={`${buttonClass} mt-0 disabled:cursor-not-allowed disabled:opacity-60`} type="submit" disabled={isSending}>
+                {isSending ? 'Sending order…' : 'Place Order'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function FavoritesPage({ favorites, onRemove }) {
+  return (
+    <main className="min-h-[70vh] px-[9%] pb-10 pt-[120px] max-[991px]:px-5">
+      <h1 className="mb-6 text-[36px] text-[#333]">Your Favorites</h1>
+      {favorites.length === 0 ? (
+        <div className="rounded-lg border border-solid border-black/10 bg-[#fff9fc] p-8 text-center">
+          <p className="text-[18px] text-[#666]">You haven’t saved any favorites yet.</p>
+          <Link to="/#products" className={`${buttonClass} mt-5`}>Browse Products</Link>
+        </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {favorites.map((product) => (
+            <article key={product.id} className="overflow-hidden rounded-lg border border-solid border-black/10 bg-white shadow-sm">
+              <img className="h-60 w-full bg-[#fff9fc] object-contain p-4" src={product.image} alt={product.name} />
+              <div className="p-5">
+                <h2 className="text-[20px] font-semibold text-[#333]">{product.name}</h2>
+                <p className="mt-2 text-[17px] text-[#e97db1]">Rs. {product.price.toLocaleString('en-IN')}</p>
+                <button className="mt-4 text-[14px] text-[#777] underline hover:text-[#e97db1]" type="button" onClick={() => onRemove(product.id)}>Remove from favorites</button>
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </main>
@@ -238,10 +399,21 @@ function App() {
       return [];
     }
   });
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('lily-lane-favorites') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem('lily-lane-cart', JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem('lily-lane-favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   useEffect(() => {
     if (location.hash) {
@@ -270,6 +442,18 @@ function App() {
     setCart((current) => current.filter((item) => item.product.id !== productId));
   };
 
+  const clearCart = () => setCart([]);
+
+  const addToFavorites = (product) => {
+    setFavorites((current) => current.some((item) => item.id === product.id)
+      ? current
+      : [...current, product]);
+  };
+
+  const removeFromFavorites = (productId) => {
+    setFavorites((current) => current.filter((item) => item.id !== productId));
+  };
+
   const setQuantity = (productId, quantity) => {
     if (quantity < 1) {
       removeFromCart(productId);
@@ -280,15 +464,16 @@ function App() {
       : item));
   };
 
-  const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
+  const cartCount = cart.length;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white font-[Verdana, Geneva, Tahoma, sans-serif] capitalize text-[#333]">
-      <Header cartCount={cartCount} />
+      <Header cartCount={cartCount} favoriteCount={favorites.length} />
       <Routes>
-        <Route path="/" element={<ShopPage onAddToCart={addToCart} />} />
-        <Route path="/cart" element={<CartPage cart={cart} onRemove={removeFromCart} onSetQuantity={setQuantity} />} />
-        <Route path="*" element={<ShopPage onAddToCart={addToCart} />} />
+        <Route path="/" element={<ShopPage onAddToCart={addToCart} onAddToFavorites={addToFavorites} favorites={favorites} />} />
+        <Route path="/cart" element={<CartPage cart={cart} onRemove={removeFromCart} onSetQuantity={setQuantity} onClearCart={clearCart} />} />
+        <Route path="/favorites" element={<FavoritesPage favorites={favorites} onRemove={removeFromFavorites} />} />
+        <Route path="*" element={<ShopPage onAddToCart={addToCart} onAddToFavorites={addToFavorites} favorites={favorites} />} />
       </Routes>
     </div>
   );
